@@ -52,6 +52,39 @@ def orders():
     )
 
 
+@dp.table(
+    name=f"{gold_schema}.dim_payments",
+    comment="Payments dimension table"
+)
+def payments():
+    return (
+        dp.read(f"{silver_schema}.dp_payments_cleaned")
+          .withColumn("payments_sk", xxhash64(col("order_id")))
+    )
+
+
+@dp.table(
+    name=f"{gold_schema}.dim_products",
+    comment="Products dimension table"
+)
+def products():
+    return (
+        dp.read(f"{silver_schema}.dp_products_cleaned")
+          .withColumn("product_sk", xxhash64(col("product_id")))
+    )
+
+
+@dp.table(
+    name=f"{gold_schema}.dim_reviews",
+    comment="Reviews dimension table"
+)
+def reviews():
+    return (
+        dp.read(f"{silver_schema}.dp_order_reviews_cleaned")
+          .withColumn("review_sk", xxhash64(col("order_id")))
+    )
+
+
 dp.create_streaming_table(
     name=f"{gold_schema}.dim_sellers",
     comment="Sellers dimension table with SCD Type 2 tracking"
@@ -83,3 +116,20 @@ dp.apply_changes(
         "geolocation_sk"
     ] 
 )
+
+
+@dp.table(
+    name=f"{gold_schema}.fct_items",
+    comment="Items fact table"
+)
+def items():
+    return (
+        dp.read(f"{silver_schema}.dp_order_items_cleaned")
+        .join(dp.read(f"{gold_schema}.dim_orders"), "order_id")
+        .join(dp.read(f"{gold_schema}.dim_payments"), "order_id")
+        .join(dp.read(f"{gold_schema}.dim_reviews"), "order_id", "left")
+        .join(dp.read(f"{gold_schema}.dim_sellers"), "seller_id")
+        .join(dp.read(f"{gold_schema}.dim_products"), "product_id")
+        .join(dp.read(f"{gold_schema}.dim_customers"), "customer_id")
+        .select("order_sk", "product_sk", "customer_sk", "seller_sk", "review_sk", "price", "freight_value", "order_purchase_timestamp")
+    )
