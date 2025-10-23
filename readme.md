@@ -13,6 +13,8 @@
 
 <img width="879" height="446" alt="image" src="https://github.com/user-attachments/assets/71502179-b640-4fd3-bfbc-7fb9670899ad" />
 
+# erd 
+<img width="1272" height="846" alt="image" src="https://github.com/user-attachments/assets/4f2e5044-d440-4c95-85d1-b65090db0275" />
 
 
 
